@@ -49,3 +49,28 @@ Cucumber writes results to `allure-results`; the report is generated in `allure-
 - `features/step_definitions/` — Cucumber step implementations
 - `features/support/` — per-scenario browser lifecycle and World
 - `cucumber.js` — Cucumber and Allure reporter configuration
+
+
+
+
+10 Test Data
+
+Feature:
+
+Scenario Outline:
+
+GIVEN I will be working as a <username>
+WHEN I netered the <password>
+THEN I will validate the <user>
+
+Example:
+
+| username  | password | user 
+| admin     | admin123 | demo
+| admin1    | admin123 | demo
+| admin2    | admin123 | demo
+| admin3    | admin123 | demo
+
+
+Background
+-----------
