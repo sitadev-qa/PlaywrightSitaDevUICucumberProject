@@ -29,3 +29,18 @@ When('I create a new enabled administrator user', async function () {
 Then('the new user should appear in User Management', async function () {
   await this.userManagementPage.expectUserListed(this.createdUsername);
 });
+
+
+When('I navigate to Admin and open Nationalities', async function () {
+  this.nationalitiesPage = new UserManagementPage(this.page);
+  await this.nationalitiesPage.openNationalitiesFromAdmin();
+});
+
+When('I create a new nationality', async function () {
+  this.createdNationality = `TestNationality_${Date.now()}`;
+  await this.nationalitiesPage.createNationality(this.createdNationality);
+});
+
+Then('the new nationality should appear in Nationalities', async function () {
+  await this.nationalitiesPage.expectNationalityListed(this.createdNationality);
+});
