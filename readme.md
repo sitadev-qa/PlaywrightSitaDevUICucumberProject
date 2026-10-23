@@ -1,6 +1,6 @@
 # OrangeHRM user creation with Playwright and Cucumber
 
-This project contains end-to-end scenarios for creating an enabled administrator user and a nationality in the OrangeHRM demo. Page interactions are kept in page objects; the Cucumber steps describe the flows.
+This project contains one end-to-end scenario: log in to the OrangeHRM demo, open **Admin → User Management**, create an enabled administrator user, and verify it appears in the user list. Page interactions are kept in page objects; the Cucumber steps describe the flow.
 
 ## Prerequisites
 
@@ -33,12 +33,6 @@ Remove-Item Env:HEADLESS
 
 The username created by the scenario is generated uniquely for each run. The associated employee is the demo account's **Peter Mac Anderson**.
 
-## GitHub Actions
-
-The `Feature tests` workflow runs all Cucumber features on every push and daily at 8:00 PM India Standard Time (14:30 UTC). It installs Chromium, runs `npm test -- --format progress`, and posts the workflow result to Microsoft Teams when configured.
-
-To enable Teams notifications, create a GitHub Actions repository secret named `TEAMS_WEBHOOK_URL` containing the webhook URL for the channel. Until the secret is set, the workflow runs the tests normally and notes in the run summary that the notification was skipped.
-
 ## Allure report
 
 ```powershell
@@ -50,7 +44,7 @@ Cucumber writes results to `allure-results`; the report is generated in `allure-
 
 ## Project layout
 
-- `features/` — Cucumber feature files for user and nationality management
+- `features/admin-user-management.feature` — the single feature and scenario
 - `features/pages/` — Playwright page objects
 - `features/step_definitions/` — Cucumber step implementations
 - `features/support/` — per-scenario browser lifecycle and World
@@ -93,3 +87,16 @@ CI - CD
 -------
 
 CI - CD -> Push our code (main) -> Sanity Run -> YML File -> Sanity is PASSED.
+
+Dev - Daily 5-6 Deployment
+
+
+QA - 1-2 Deployment
+
+
+Stage - 1
+
+
+WEBHOOK
+-------
+
