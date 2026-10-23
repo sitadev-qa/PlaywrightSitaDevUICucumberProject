@@ -1,0 +1,91 @@
+name: Feature tests
+
+on:
+  push:
+  schedule:
+    - cron: '30 14 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  feature-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Cucumber feature files
+        id: tests
+        run: npm test -- --format progress
+
+      - name: Check Teams webhook configuration
+        id: teams-config
+        if: always()
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        shell: bash
+        run: |
+          if [[ -n "$TEAMS_WEBHOOK_URL" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send result to Microsoft Teams
+        if: always() && steps.teams-config.outputs.configured == 'true'
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          TEST_STATUS: ${{ steps.tests.outcome }}
+        shell: bash
+        run: |
+          jq -n \
+            --arg status "$TEST_STATUS" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg event "$GITHUB_EVENT_NAME" \
+            --arg actor "$GITHUB_ACTOR" \
+            --arg run_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            '{
+              type: "message",
+              attachments: [{
+                contentType: "application/vnd.microsoft.card.adaptive",
+                contentUrl: null,
+                content: {
+                  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                  type: "AdaptiveCard",
+                  version: "1.4",
+                  body: [
+                    { type: "TextBlock", text: ("Feature tests: " + $status), size: "Medium", weight: "Bolder" },
+                    { type: "FactSet", facts: [
+                      { title: "Repository", value: $repository },
+                      { title: "Trigger", value: $event },
+                      { title: "Started by", value: $actor }
+                    ]},
+                    { type: "TextBlock", text: ("[View workflow run](" + $run_url + ")"), wrap: true }
+                  ]
+                }
+              }]
+            }' |
+            curl --fail-with-body --silent --show-error \
+              -H "Content-Type: application/json" \
+              --data-binary @- \
+              "$TEAMS_WEBHOOK_URL"
+
+      - name: Note missing Teams webhook
+        if: always() && steps.teams-config.outputs.configured != 'true'
+        run: |
+          echo "Microsoft Teams notification was skipped. Add the TEAMS_WEBHOOK_URL repository secret to enable it." >> "$GITHUB_STEP_SUMMARY"
