@@ -4,6 +4,8 @@ Feature:
     I want to create a nationality
     So that the nationality can be used in the application
     
+
+    @nationalities
     Scenario: Create a new nationality
         Given I am logged in as the administrator
         When I navigate to Admin and open Nationalities
